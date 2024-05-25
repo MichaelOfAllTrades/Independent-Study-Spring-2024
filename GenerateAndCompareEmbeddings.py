@@ -8,7 +8,6 @@ import numpy as np
 import requests
 import pandas as pd
 
-
 class GenerateAndCompareEmbeddings:
     def __init__(self, excel_file_name):
         self.excel_file_name = excel_file_name
@@ -84,26 +83,39 @@ class GenerateAndCompareEmbeddings:
         return food_object
 
     def iterate_through_apis(self):
+        # for every row in the excel sheet
         for index, row in self.df.iterrows():
+            # grab the API endpoint
             if pd.notna(row['fdc api url']):
                 name = row['name']
                 endpoint = row['fdc api url']
+                # return the product data and put in dictionary
                 self.all_food_objects[name] = self.get_food_data_from_api(name, endpoint)
         # for endpoint in all_endpoints:
         #     all_food_objects[endpoint['name']] = get_food_data_from_api(endpoint['name'], endpoint['api url'])
         #     # all_food_objects.append(get_food_data_from_api(endpoint['name'], endpoint['api url']))
         #     # print("type", type(all_food_objects[endpoint['name']]['nutrients']))
+
+        # modify all_food_objects such that each one has every nutrient (even if the nutrient initially wasn't present)
+        # for every food product
         for food_name, food_object in self.all_food_objects.items():
             print("type of food_object", type(food_object))
+            # create empty nutrient dictionary
             current_nutrients = {}
+            # for each nutrient
             for nutrient in self.all_nutrients:
+                # if it's present in the current food product
                 if nutrient in food_object['nutrients']:
+                    # copy it
                     current_nutrients[nutrient] = food_object['nutrients'][nutrient]
+                # if not
                 else:
+                    # make a brand new '0' nutrient object
                     current_nutrients[nutrient] = {
                         'value': 0,
                         'percentDailyValue': 0
                     }
+            # put it back
             food_object['nutrients'] = current_nutrients
 
         # for food_name, food_object in all_food_objects.items():
