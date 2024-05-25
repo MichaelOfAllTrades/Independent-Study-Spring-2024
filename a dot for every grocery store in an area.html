@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Address Map</title>
+    <style>
+        #map {
+            height: 600px;
+            width: 100%;
+        }
+    </style>
+    <script src="https://maps.googleapis.com/maps/api/js?key=API_KEY"></script>
+</head>
+<body>
+    <div id="map"></div>
+
+    <script>
+        var map = new google.maps.Map(document.getElementById('map'), {
+            zoom: 10,
+            center: {lat: 51.505, lng: -0.09}
+        });
+
+        fetch('Food_Service_Establishment__Last_Inspection_20240228 (1).csv')
+            .then(response => response.text())
+            .then(data => {
+                var lines = data.split('\n');
+                console.log(lines.length);
+
+                var addresses = lines.map(line => line.split(',')[1]);
+
+                addresses.forEach(function(address) {
+                  getLatLngFromAddress(address).then(function(latlng) {
+                    console.log("latlong", latlng);
+                    new google.maps.Marker({
+                        position: latlng,
+                        map: map,
+                        icon: {
+                            path: google.maps.SymbolPath.CIRCLE,
+                            scale: 10, // size of the dot
+                            fillColor: "#F00", // color of the dot
+                            fillOpacity: 1, // opacity of the dot
+                            strokeWeight: 0 // border of the dot
+                        }
+                    });
+                  }).catch(function(error) {
+                      console.error(error);
+                  });
+              });
+
+              function getLatLngFromAddress(address) {
+                  return new Promise(function(resolve, reject) {
+                      var geocoder = new google.maps.Geocoder();
+
+                      geocoder.geocode({ 'address': address }, function(results, status) {
+                          if (status === 'OK') {
+                              var latlng = {
+                                  lat: results[0].geometry.location.lat(),
+                                  lng: results[0].geometry.location.lng()
+                              };
+                              resolve(latlng);
+                          } else {
+                              reject('Geocode was not successful for the following reason: ' + status);
+                          }
+                      });
+                  });
+              }
+            });
+    </script>
+</body>
+</html>
